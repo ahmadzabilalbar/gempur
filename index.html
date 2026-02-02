@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Grup Gempur Matematik - Slot Masa 9 Pagi hingga 11 Pagi</title>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Font Awesome 6 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .animate-fade-in {
+            animation: fadeIn 0.6s ease-out;
+        }
+
+        .gradient-bg {
+            background: linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%);
+        }
+
+        .gradient-card {
+            background: linear-gradient(135deg, #00d2ff 0%, #3a7bd5 100%);
+        }
+
+        .glassmorphism {
+            background: rgba(255, 255, 255, 0.98);
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(0, 210, 255, 0.3);
+        }
+    </style>
+</head>
+
+<body class="gradient-bg min-h-screen flex items-center justify-center p-5">
+    <div class="glassmorphism rounded-3xl p-10 max-w-6xl w-full shadow-2xl animate-fade-in">
+        <!-- Header -->
+        <div class="text-center mb-8">
+            <h1 class="text-5xl font-bold text-cyan-600 mb-3 flex items-center justify-center gap-3">
+                <i class="fa-solid fa-calendar-days"></i>
+                Grup Gempur Matematik
+            </h1>
+            <p class="text-gray-700 text-xl font-semibold">
+                <i class="fa-solid fa-clock"></i>
+                Jumaat, 9 - 11 pagi
+            </p>
+        </div>
+
+        <!-- Stats Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <!-- Total Fridays -->
+            <div
+                class="gradient-card text-white p-6 rounded-2xl text-center transition-all duration-300 hover:-translate-y-2 hover:shadow-xl">
+                <div class="text-5xl font-bold mb-2" id="totalFridays">52</div>
+                <div class="text-sm uppercase tracking-wider opacity-90">
+                    <i class="fa-solid fa-calendar-check"></i>
+                    Jumlah Jumaat
+                </div>
+            </div>
+
+            <!-- Hours per Slot -->
+            <div
+                class="gradient-card text-white p-6 rounded-2xl text-center transition-all duration-300 hover:-translate-y-2 hover:shadow-xl">
+                <div class="text-5xl font-bold mb-2">2</div>
+                <div class="text-sm uppercase tracking-wider opacity-90">
+                    <i class="fa-solid fa-hourglass-half"></i>
+                    Jam Setiap Slot
+                </div>
+            </div>
+
+            <!-- Total Hours -->
+            <div
+                class="gradient-card text-white p-6 rounded-2xl text-center transition-all duration-300 hover:-translate-y-2 hover:shadow-xl">
+                <div class="text-5xl font-bold mb-2" id="totalHours">104</div>
+                <div class="text-sm uppercase tracking-wider opacity-90">
+                    <i class="fa-solid fa-business-time"></i>
+                    Jumlah Jam
+                </div>
+            </div>
+        </div>
+
+        <!-- Calendar Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-8" id="calendarGrid"></div>
+    </div>
+
+    <script>
+        // Pulang Bermalam exclusion date ranges (2026)
+        const exclusionRanges = [
+            { start: new Date(2026, 0, 30), end: new Date(2026, 0, 31) },   // 30-31 Jan 2026
+            { start: new Date(2026, 1, 13), end: new Date(2026, 1, 21) },   // 13-21 Feb 2026
+            { start: new Date(2026, 2, 6), end: new Date(2026, 2, 7) },     // 6-7 Mac 2026
+            { start: new Date(2026, 2, 20), end: new Date(2026, 2, 28) },   // 20-28 Mac 2026
+            { start: new Date(2026, 3, 24), end: new Date(2026, 3, 25) },   // 24-25 Apr 2026
+            { start: new Date(2026, 4, 22), end: new Date(2026, 5, 6) },    // 22 Mei - 6 Jun 2026
+            { start: new Date(2026, 6, 3), end: new Date(2026, 6, 4) },     // 3-4 Jul 2026
+            { start: new Date(2026, 6, 31), end: new Date(2026, 7, 1) },    // 31 Jul - 1 Ogo 2026
+            { start: new Date(2026, 7, 28), end: new Date(2026, 8, 5) },    // 28 Ogo - 5 Sep 2026
+            { start: new Date(2026, 9, 2), end: new Date(2026, 9, 3) },     // 2-3 Okt 2026
+            { start: new Date(2026, 10, 6), end: new Date(2026, 10, 9) },   // 6-9 Nov 2026
+            { start: new Date(2026, 11, 4), end: new Date(2026, 11, 31) }   // 4-31 Dis 2026
+        ];
+
+        // Check if a date falls within exclusion ranges
+        function isExcluded(date) {
+            return exclusionRanges.some(range => {
+                // Normalize dates to start of day for accurate comparison
+                const normalizedDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+                const normalizedStart = new Date(range.start.getFullYear(), range.start.getMonth(), range.start.getDate());
+                const normalizedEnd = new Date(range.end.getFullYear(), range.end.getMonth(), range.end.getDate());
+                return normalizedDate >= normalizedStart && normalizedDate <= normalizedEnd;
+            });
+        }
+
+        // Generate all Fridays in 2026
+        function getAllFridays2026() {
+            const fridays = [];
+            const year = 2026;
+
+            // Start from January 1, 2025
+            let date = new Date(year, 0, 1);
+
+            // Find the first Friday
+            while (date.getDay() !== 5) {
+                date.setDate(date.getDate() + 1);
+            }
+
+            // Collect all Fridays
+            while (date.getFullYear() === year) {
+                fridays.push(new Date(date));
+                date.setDate(date.getDate() + 7);
+            }
+
+            return fridays;
+        }
+
+        // Group Fridays by month
+        function groupByMonth(fridays) {
+            const months = {};
+            const monthNames = [
+                'Januari', 'Februari', 'Mac', 'April', 'Mei', 'Jun',
+                'Julai', 'Ogos', 'September', 'Oktober', 'November', 'Disember'
+            ];
+
+            fridays.forEach(fridayData => {
+                const date = fridayData.date;
+                const monthIndex = date.getMonth();
+                const monthName = monthNames[monthIndex];
+
+                if (!months[monthName]) {
+                    months[monthName] = [];
+                }
+
+                months[monthName].push(fridayData);
+            });
+
+            return months;
+        }
+
+        // Format date
+        function formatDate(date) {
+            const day = date.getDate();
+            const monthNames = ['Jan', 'Feb', 'Mac', 'Apr', 'Mei', 'Jun',
+                'Jul', 'Ogo', 'Sep', 'Okt', 'Nov', 'Dis'];
+            return `${monthNames[date.getMonth()]} ${day}`;
+        }
+
+        // Render calendar
+        function renderCalendar() {
+            const allFridays = getAllFridays2026();
+
+            // Get today's date at midnight for comparison
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+
+            // Topics to distribute (in chapter order, with difficulty-based session counts)
+            const topics = [
+                { bab: 1, title: 'Indeks', difficulty: '**', sessions: 2 },
+                { bab: 2, title: 'Bentuk Piawai', difficulty: '*', sessions: 2 },
+                { bab: 3, title: 'Matematik Pengguna: Simpanan dan Pelaburan, Kredit dan Hutang', difficulty: '***', sessions: 3 },
+                { bab: 4, title: 'Lukisan Berskala', difficulty: '*', sessions: 2 },
+                { bab: 5, title: 'Nisbah Trigonometri', difficulty: '****', sessions: 4 },
+                { bab: 6, title: 'Sudut dan Tangen bagi Bulatan', difficulty: '*****', sessions: 5 },
+                { bab: 7, title: 'Pelan dan Dongakan', difficulty: '***', sessions: 3 },
+                { bab: 8, title: 'Lokus dalam Dua Dimensi', difficulty: '***', sessions: 3 },
+                { bab: 9, title: 'Garis Lurus', difficulty: '***', sessions: 3 }
+            ];
+
+            // Create array with status (past, excluded, or available)
+            const fridaysWithStatus = allFridays.map(date => {
+                const isPast = date < today;
+                const isExcludedDate = isExcluded(date);
+
+                return {
+                    date: date,
+                    isPast: isPast,
+                    excluded: isExcludedDate,
+                    available: !isPast && !isExcludedDate
+                };
+            });
+
+            // Assign topics to available dates (each topic gets sessions based on difficulty)
+            // Skip November (month 10)
+            let topicIndex = 0;
+            let sessionCount = 0;
+            fridaysWithStatus.forEach(friday => {
+                if (friday.available && friday.date.getMonth() !== 10) {
+                    friday.topic = topics[topicIndex];
+                    sessionCount++;
+
+                    // Move to next topic after completing required sessions
+                    if (sessionCount >= topics[topicIndex].sessions) {
+                        topicIndex = (topicIndex + 1) % topics.length;
+                        sessionCount = 0;
+                    }
+                }
+            });
+
+            // Find the next upcoming available Friday (coming soon)
+            const nextAvailableFriday = fridaysWithStatus.find(f => f.available);
+
+            const monthlyFridays = groupByMonth(fridaysWithStatus);
+            const calendarGrid = document.getElementById('calendarGrid');
+
+            // Count available (non-excluded, non-past) Fridays
+            const availableFridays = fridaysWithStatus.filter(f => f.available).length;
+
+            // Update total count
+            document.getElementById('totalFridays').textContent = availableFridays;
+            document.getElementById('totalHours').textContent = availableFridays * 2;
+
+            // Render each month
+            Object.keys(monthlyFridays).forEach(month => {
+                const fridayDataList = monthlyFridays[month];
+                const availableCount = fridayDataList.filter(f => f.available).length;
+
+                const monthCard = document.createElement('div');
+                monthCard.className = 'bg-gray-50 rounded-xl p-5 transition-all duration-300 hover:bg-gray-100 hover:scale-105';
+
+                const monthTitle = document.createElement('div');
+                monthTitle.className = 'text-xl font-semibold text-cyan-700 mb-4 pb-3 border-b-2 border-cyan-600 flex items-center justify-between';
+                monthTitle.innerHTML = `
+                    <span><i class="fa-solid fa-calendar-alt mr-2"></i>${month}</span>
+                    <span class="bg-cyan-100 text-cyan-700 px-3 py-1 rounded-full text-sm font-semibold">${availableCount}</span>
+                `;
+
+                const fridayList = document.createElement('ul');
+                fridayList.className = 'space-y-2';
+
+                fridayDataList.forEach(fridayData => {
+                    const date = fridayData.date;
+                    const isPast = fridayData.isPast;
+                    const excluded = fridayData.excluded;
+                    const isComingSoon = nextAvailableFriday && date.getTime() === nextAvailableFriday.date.getTime();
+                    const topic = fridayData.topic;
+
+                    const listItem = document.createElement('li');
+
+                    if (isPast) {
+                        // Past date - show with gray styling and "Lepas" tag
+                        listItem.className = 'bg-gray-100 p-3 rounded-lg text-sm text-gray-400 flex items-center justify-between line-through opacity-60';
+                        listItem.innerHTML = `
+                            <span><i class="fa-solid fa-circle-xmark mr-2"></i>${formatDate(date)}, ${date.getFullYear()}</span>
+                            <span class="text-xs bg-gray-200 text-gray-500 px-2 py-1 rounded"><i class="fa-solid fa-check mr-1"></i>Lepas</span>
+                        `;
+                    } else if (excluded) {
+                        // Excluded date (Pulang Bermalam) - show with red styling
+                        listItem.className = 'bg-red-50 p-3 rounded-lg text-sm text-red-400 flex items-center justify-between line-through opacity-50';
+                        listItem.innerHTML = `
+                            <span><i class="fa-solid fa-ban mr-2"></i>${formatDate(date)}, ${date.getFullYear()}</span>
+                            <span class="text-xs bg-red-100 text-red-500 px-2 py-1 rounded"><i class="fa-solid fa-home mr-1"></i>Pulang</span>
+                        `;
+                    } else if (isComingSoon) {
+                        // Coming Soon - Next available Friday with special highlight
+                        listItem.className = 'bg-gradient-to-r from-cyan-100 to-blue-100 p-3 rounded-lg text-sm text-gray-900 border-2 border-cyan-500 shadow-lg animate-pulse cursor-pointer';
+                        listItem.innerHTML = `
+                            <div class="flex flex-col gap-1">
+                                <div class="flex items-center justify-between">
+                                    <span class="font-semibold"><i class="fa-solid fa-star mr-2 text-cyan-600"></i>${formatDate(date)}, ${date.getFullYear()}</span>
+                                    <span class="text-xs bg-cyan-600 text-white px-2 py-1 rounded font-bold"><i class="fa-solid fa-rocket mr-1"></i>Akan Datang!</span>
+                                </div>
+                                <div class="text-xs font-semibold text-cyan-800 ml-6">
+                                    <i class="fa-solid fa-book mr-1"></i>Bab ${topic.bab}: ${topic.title}
+                                </div>
+                            </div>
+                        `;
+                    } else {
+                        // Available date - normal styling with or without topic
+                        listItem.className = 'group bg-white p-3 rounded-lg text-sm text-gray-800 transition-all duration-200 hover:bg-cyan-600 hover:text-white cursor-pointer border border-gray-200';
+
+                        if (topic) {
+                            // Has topic assigned
+                            listItem.innerHTML = `
+                                <div class="flex flex-col gap-1">
+                                    <div class="flex items-center justify-between">
+                                        <span><i class="fa-solid fa-calendar-day mr-2"></i>${formatDate(date)}, ${date.getFullYear()}</span>
+                                        <span class="text-xs"><i class="fa-solid fa-clock mr-1"></i>9-11 Pagi</span>
+                                    </div>
+                                    <div class="text-xs text-cyan-700 font-semibold ml-6 group-hover:text-white">
+                                        <i class="fa-solid fa-book-open mr-1"></i>Bab ${topic.bab}: ${topic.title}
+                                    </div>
+                                </div>
+                            `;
+                        } else {
+                            // No topic (e.g., November dates)
+                            listItem.innerHTML = `
+                                <div class="flex items-center justify-between">
+                                    <span><i class="fa-solid fa-calendar-day mr-2"></i>${formatDate(date)}, ${date.getFullYear()}</span>
+                                    <span class="text-xs"><i class="fa-solid fa-clock mr-1"></i>9-11 Pagi</span>
+                                </div>
+                            `;
+                        }
+                    }
+
+                    fridayList.appendChild(listItem);
+                });
+
+                monthCard.appendChild(monthTitle);
+                monthCard.appendChild(fridayList);
+                calendarGrid.appendChild(monthCard);
+            });
+        }
+
+        // Initialize
+        renderCalendar();
+    </script>
+</body>
+
+</html>
